@@ -1,0 +1,12 @@
+# Backup files created during editing
+*.bak
+*.bak*
+*.bak_*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
