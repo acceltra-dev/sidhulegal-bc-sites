@@ -154,6 +154,7 @@ def make_template():
 
     # 6b. blanket-replace the remaining city NAME -> {{CITY}}, protecting firm-HQ lines
     PROTECT = ("13737", "Suite 1104", "addressLocality", "V3V 0C6",
+               "King George Blvd", "V3W 4Z9", "6832c",
                "output=embed", "maps/dir", "maps/search")
     HQ = ("based in Surrey", "based right here in Surrey", "right here in Surrey", "Based right here in Surrey")
     out2 = []
