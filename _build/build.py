@@ -144,6 +144,10 @@ def make_template():
     t = re.sub(r'(<p class="hero-sub">).*?(</p>)', r'\1{{HERO_SUB}}\2', t, count=1, flags=re.S)
     t = t.replace("https://images.unsplash.com/photo-1697755790236-2a455c4aa22c?auto=format&fit=crop&w=1920&q=80", "{{HERO_IMG}}")
 
+    # 4e. testimonials grid -> per-city token (restore each city's own reviews)
+    t = re.sub(r'(<div class="testi-grid">).*?(</div>\s*</div>\s*</section>)',
+               r'\1\n{{TESTIMONIALS}}\n    \2', t, count=1, flags=re.S)
+
     # 4c. city landmarks hardcoded in testimonials -> tokens
     t = t.replace("After my accident on King George Blvd", "After my accident on {{LOCAL_ROAD_SHORT}}")
     t = t.replace("near Guildford", "near {{LOCAL_AREA}}")
@@ -206,8 +210,10 @@ def network_links(slug):
 
 def generate(slug, dry=True):
     c = CITIES[slug]
-    hero = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hero.json"), encoding="utf-8"))
-    hkey = c["dir"].replace("sidhulegal-", "")  # hero.json keyed by dir suffix (mapleridge, newwestminster)
+    _bd = os.path.dirname(os.path.abspath(__file__))
+    hero = json.load(open(os.path.join(_bd, "hero.json"), encoding="utf-8"))
+    testi = json.load(open(os.path.join(_bd, "testimonials.json"), encoding="utf-8"))
+    hkey = c["dir"].replace("sidhulegal-", "")  # json keyed by dir suffix (mapleridge, newwestminster)
     h = hero[hkey]
     t = open(TPL, encoding="utf-8").read()
     jsesc = lambda s: s.replace("\\", "\\\\").replace("'", "\\'")
@@ -224,6 +230,7 @@ def generate(slug, dry=True):
         "{{LOCAL_HOSPITAL}}": c["local_hospital"],
         "{{LOCAL_ROAD_SHORT}}": c["local_road_short"], "{{LOCAL_AREA}}": c["local_area"],
         "{{HERO_SUB}}": h["hero_sub"], "{{HERO_IMG}}": h["hero_img"],
+        "{{TESTIMONIALS}}": testi[hkey],
         "{{SERVE_LINKS}}": serve_links(slug), "{{NETWORK_LINKS}}": network_links(slug),
     }
     for k, v in {**js_repl, **repl}.items():
