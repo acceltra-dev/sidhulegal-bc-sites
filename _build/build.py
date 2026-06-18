@@ -5,7 +5,7 @@ Build Sidhu BC city sites from one Surrey-based template.
 - generate(slug): writes <dir>/index.html for a city from CITIES data
 Layout always = Surrey's. Only city-specific fields change.
 """
-import re, sys, os
+import re, sys, os, json
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SURREY = os.path.join(ROOT, "sidhulegal-surrey", "index.html")
@@ -140,6 +140,10 @@ def make_template():
     t = jsval("lx_h2", "Injury & ICBC Claims in {{CITY}}: What to Know")
     t = jsval("lx_h3a", "Where {{CITY}} crashes happen")
 
+    # 4d. hero subtitle + hero background image -> per-city tokens
+    t = re.sub(r'(<p class="hero-sub">).*?(</p>)', r'\1{{HERO_SUB}}\2', t, count=1, flags=re.S)
+    t = t.replace("https://images.unsplash.com/photo-1697755790236-2a455c4aa22c?auto=format&fit=crop&w=1920&q=80", "{{HERO_IMG}}")
+
     # 4c. city landmarks hardcoded in testimonials -> tokens
     t = t.replace("After my accident on King George Blvd", "After my accident on {{LOCAL_ROAD_SHORT}}")
     t = t.replace("near Guildford", "near {{LOCAL_AREA}}")
@@ -202,6 +206,9 @@ def network_links(slug):
 
 def generate(slug, dry=True):
     c = CITIES[slug]
+    hero = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hero.json"), encoding="utf-8"))
+    hkey = c["dir"].replace("sidhulegal-", "")  # hero.json keyed by dir suffix (mapleridge, newwestminster)
+    h = hero[hkey]
     t = open(TPL, encoding="utf-8").read()
     jsesc = lambda s: s.replace("\\", "\\\\").replace("'", "\\'")
     # JS-escaped variants first (their token names are supersets, so order matters)
@@ -216,6 +223,7 @@ def generate(slug, dry=True):
         "{{LOCAL_INTRO}}": c["local_intro"], "{{LOCAL_ROADS}}": c["local_roads"],
         "{{LOCAL_HOSPITAL}}": c["local_hospital"],
         "{{LOCAL_ROAD_SHORT}}": c["local_road_short"], "{{LOCAL_AREA}}": c["local_area"],
+        "{{HERO_SUB}}": h["hero_sub"], "{{HERO_IMG}}": h["hero_img"],
         "{{SERVE_LINKS}}": serve_links(slug), "{{NETWORK_LINKS}}": network_links(slug),
     }
     for k, v in {**js_repl, **repl}.items():
